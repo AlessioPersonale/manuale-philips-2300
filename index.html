@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Manuale Macchina Caffè</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caffè">
+<meta name="theme-color" content="#b4581f">
+<style>
+:root{
+  --bg:#f7f3ee; --surface:#ffffff; --surface2:#f1ebe3; --text:#2b211a; --muted:#6f6258;
+  --line:#e2d8cc; --accent:#b4581f; --accent-soft:#f6e2d3; --ok:#2f7d4f; --ok-soft:#dcefe3;
+  --warn:#b3261e; --warn-soft:#f8dedb; --blue:#1f6fb4; --blue-soft:#dce9f6; --amber:#d9822b;
+  --panel:#2c2c2e; --panel-key:#3b3b3e; --panel-text:#e9e9ea; --led:#555; --led-on:#f5f5f5;
+  --shadow:0 1px 2px rgba(60,40,20,.06),0 4px 14px rgba(60,40,20,.06);
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#191512; --surface:#231e1a; --surface2:#2d2621; --text:#f1e9e1; --muted:#b3a69a;
+    --line:#3b322b; --accent:#e58a4e; --accent-soft:#3d2a1d; --ok:#6cc690; --ok-soft:#1d3326;
+    --warn:#f08a80; --warn-soft:#3d2120; --blue:#7fb6ea; --blue-soft:#1c2c3c;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#191512; --surface:#231e1a; --surface2:#2d2621; --text:#f1e9e1; --muted:#b3a69a;
+  --line:#3b322b; --accent:#e58a4e; --accent-soft:#3d2a1d; --ok:#6cc690; --ok-soft:#1d3326;
+  --warn:#f08a80; --warn-soft:#3d2120; --blue:#7fb6ea; --blue-soft:#1c2c3c;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+img{max-width:100%;display:block}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;font-size:18px;margin-right:auto}
+.brand .logo{width:34px;height:34px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:#fff}
+.search{flex:1 1 260px;position:relative;max-width:420px}
+.search input{width:100%;padding:10px 14px 10px 38px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.results{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);max-height:60vh;overflow:auto;display:none}
+.results a{display:block;padding:10px 14px;text-decoration:none;color:var(--text);border-bottom:1px solid var(--line)}
+.results a:last-child{border-bottom:0}
+.results a:hover,.results a.sel{background:var(--surface2)}
+.results small{color:var(--muted);display:block}
+.pill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.pill:hover{border-color:var(--accent)}
+main{padding:22px 0 60px}
+h1{font-size:clamp(24px,4vw,34px);line-height:1.2;margin:0 0 6px}
+h2{font-size:21px;margin:28px 0 12px}
+h3{font-size:17px;margin:0 0 6px}
+.lead{color:var(--muted);margin:0 0 20px;max-width:70ch}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:6px;transition:transform .12s,border-color .12s}
+a.card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.card .ico{width:42px;height:42px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:4px}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.card.dim{opacity:.5}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.tag.model{background:var(--blue-soft);color:var(--blue)}
+.tag.time{background:var(--ok-soft);color:var(--ok)}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:12px}
+.crumbs a{color:var(--muted)}
+.cats{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.cat{padding:20px}
+.cat .ico{width:52px;height:52px}
+.cat h3{font-size:19px}
+.quick{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 24px}
+.quick a{text-decoration:none}
+.notice{border-radius:12px;padding:12px 14px;margin:12px 0;font-size:15px;display:flex;gap:10px}
+.notice.info{background:var(--blue-soft);color:var(--text)}
+.notice.warn{background:var(--warn-soft)}
+.notice.tip{background:var(--ok-soft)}
+.notice b{white-space:nowrap}
+/* guida */
+.guide{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.guide{grid-template-columns:minmax(0,1fr)}.visual{position:static}}
+@media (max-width:600px){.search{flex-basis:100%;max-width:none;order:3}.steptext{font-size:17px}.brand{font-size:16px}.topbar .pill{padding:6px 9px;font-size:13px}}
+.stepbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.stepnum{font-size:13px;color:var(--accent);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.steptext{font-size:19px;line-height:1.5;margin:8px 0 12px}
+.steptext ul{margin:6px 0;padding-left:20px;font-size:16px;color:var(--muted)}
+.progress{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin:12px 0 16px}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.nav{display:flex;gap:10px;justify-content:space-between;margin-top:16px}
+.btn{border:0;border-radius:12px;padding:12px 18px;cursor:pointer;font-weight:600;background:var(--surface2)}
+.btn.primary{background:var(--accent);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.dots{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.dots button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:13px}
+.dots button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.dots button.done{background:var(--accent-soft)}
+.visual{display:flex;flex-direction:column;gap:14px;position:sticky;top:76px}
+.figs{display:flex;gap:10px;flex-wrap:wrap}
+.fig{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:zoom-in;flex:1 1 180px;max-width:280px}
+.fig img{width:100%;height:auto}
+.fig span{display:block;font-size:12px;color:#6f6258;padding:4px 8px;border-top:1px solid #eee}
+.allsteps{margin-top:24px}
+.allsteps ol{padding-left:22px}
+.allsteps li{margin:6px 0}
+.timer{display:flex;align-items:center;gap:12px;background:var(--ok-soft);border-radius:12px;padding:10px 14px;margin-top:8px;flex-wrap:wrap}
+.timer .t{font-variant-numeric:tabular-nums;font-size:24px;font-weight:700;min-width:80px}
+/* pannello */
+.panelwrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;box-shadow:var(--shadow)}
+.panelwrap .cap{font-size:13px;color:var(--muted);margin:0 0 8px}
+.panel{background:var(--panel);border-radius:14px;padding:12px;display:grid;gap:8px;color:var(--panel-text);
+  grid-template-columns:auto 1fr auto;align-items:center;overflow-x:auto}
+.panel .mid{display:grid;grid-template-columns:repeat(4,minmax(52px,1fr));gap:5px}
+.panel .right{display:flex;flex-direction:column;gap:6px}
+.panel .choice{display:grid;grid-template-columns:repeat(4,minmax(48px,1fr));gap:5px}
+.panel .maint{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.panel .side{display:flex;align-items:center;gap:8px}
+.k{position:relative;background:var(--panel-key);border:1px solid #4a4a4e;border-radius:8px;padding:6px 4px 14px;font-size:10.5px;line-height:1.15;text-align:center;cursor:pointer;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--panel-text)}
+.k svg{width:20px;height:20px}
+.k .leds{position:absolute;bottom:4px;left:0;right:0;display:flex;justify-content:center;gap:3px}
+.k .leds.v{flex-direction:column;right:4px;left:auto;bottom:6px;top:6px;justify-content:space-around}
+.led{width:6px;height:6px;border-radius:2px;background:var(--led)}
+.led.on{background:var(--led-on);box-shadow:0 0 6px #fff}
+.led.blink{animation:blink 1s steps(2,start) infinite;background:var(--led-on)}
+.led.orange.on,.led.orange.blink{background:#ff9d3c;box-shadow:0 0 6px #ff9d3c}
+.led.blue.on{background:#57a8ff;box-shadow:0 0 6px #57a8ff}
+.led.red.on,.led.red.blink{background:#ff5a4e;box-shadow:0 0 6px #ff5a4e}
+@keyframes blink{to{visibility:hidden}}
+.k.round{border-radius:50%;width:46px;height:46px;min-height:0;padding:0}
+.k.hl{outline:3px solid #ffb36b;outline-offset:2px;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,179,107,.7)}50%{box-shadow:0 0 0 8px rgba(255,179,107,0)}}
+.k .badge{position:absolute;top:-10px;right:-8px;background:#ffb36b;color:#2b211a;font-size:10px;font-weight:700;border-radius:99px;padding:1px 6px;white-space:nowrap;z-index:2}
+.warnicons{display:flex;flex-direction:column;gap:6px;align-items:center;padding:0 4px}
+.wi{display:flex;align-items:center;gap:4px;font-size:10px}
+.wi svg{width:16px;height:16px}
+.startled{width:6px;height:26px;border-radius:3px;background:var(--led)}
+.startled.on{background:var(--led-on);box-shadow:0 0 6px #fff}
+.startled.blink{background:var(--led-on);animation:blink 1s steps(2,start) infinite}
+.wi.hl{outline:3px solid #ffb36b;outline-offset:2px;border-radius:4px}
+@media (max-width:520px){
+  .panel{grid-template-columns:minmax(0,1fr)}
+  .panel .mid,.panel .choice{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .k{font-size:9.5px}
+  .panel .side{justify-content:space-between}
+  .panel .warnicons{flex-direction:row;gap:14px}
+}
+.explain{margin-top:10px;font-size:15px;min-height:3em}
+.explain b{color:var(--accent)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:14px;border-radius:4px;display:inline-block;outline:3px solid #ffb36b}
+/* mappa */
+.map{max-width:760px;margin:0 auto;position:relative;background:#fff;border-radius:var(--r);border:1px solid var(--line);overflow:hidden}
+.hs{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);background:rgba(180,88,31,.12);cursor:pointer;padding:0}
+.hs:hover,.hs.on{background:rgba(180,88,31,.45)}
+.parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin-top:14px}
+.parts button{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:14px}
+.parts button.on{border-color:var(--accent);background:var(--accent-soft)}
+.parts b{color:var(--accent);display:inline-block;min-width:34px}
+.partinfo{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px;min-height:60px}
+/* tabelle / problemi */
+.acc{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin:8px 0;overflow:hidden}
+.acc summary{padding:14px 16px;cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:"+";color:var(--accent);font-size:20px;line-height:1}
+.acc[open] summary::after{content:"–"}
+.acc .body{padding:0 16px 14px}
+.cause{border-left:3px solid var(--accent);padding:6px 0 6px 12px;margin:10px 0}
+.cause .c{font-weight:600}
+.cause .s{color:var(--text)}
+table{border-collapse:collapse;width:100%;background:var(--surface);border-radius:12px;overflow:hidden}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:15px}
+th{background:var(--surface2);font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+.choices{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.choice-btn{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.choice-btn:hover,.choice-btn.on{border-color:var(--accent);background:var(--accent-soft)}
+.choice-btn small{color:var(--muted)}
+/* manutenzione calendario */
+.sched{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.sitem{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.sitem .st{font-size:13px;font-weight:600}
+.st.ok{color:var(--ok)} .st.due{color:var(--warn)} .st.never{color:var(--muted)}
+.sitem .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.sitem .row .btn{padding:8px 12px;font-size:14px}
+/* lightbox */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;place-items:center;z-index:50;padding:16px;cursor:zoom-out}
+.lb.on{display:grid}
+.lb img{max-height:90vh;max-width:min(92vw,700px);background:#fff;border-radius:12px}
+/* modello */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;place-items:center;z-index:40;padding:16px}
+.modal.on{display:grid}
+.modal .box{background:var(--surface);border-radius:16px;padding:20px;max-width:520px;width:100%;box-shadow:var(--shadow)}
+.modal .opts{display:grid;gap:10px;margin:14px 0}
+.hard{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.wrap{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+footer{color:var(--muted);font-size:13px;padding:20px 0 calc(40px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <a class="brand" href="#/"><span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V9Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3v3M12 3v3"/></svg></span>Manuale Caffè</a>
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label class="sr" for="q">Cerca</label>
+      <input id="q" type="search" placeholder="Cosa ti serve? es. decalcificare, cappuccino, spia rossa…" autocomplete="off">
+      <div class="results" id="results"></div>
+    </div>
+    <button class="pill" id="modelBtn" type="button"></button>
+    <button class="pill" id="themeBtn" type="button" title="Tema chiaro/scuro">◐</button>
+  </div>
+</header>
+<main class="wrap" id="app"></main>
+<footer class="wrap">Basato sul manuale utente delle macchine per caffè espresso automatiche serie 2300 / 3300 (sezione italiana). In caso di dubbio fa fede il manuale originale e l'opuscolo sulla sicurezza.</footer>
+
+<div class="lb" id="lb"><img alt=""></div>
+<div class="modal" id="modal"><div class="box">
+  <h3>Qual è il tuo modello?</h3>
+  <p class="lead" style="margin:0">Il numero di modello è sull'etichetta dentro lo sportello di manutenzione (A10). Così ti mostro solo le istruzioni giuste.</p>
+  <div class="opts">
+    <button class="choice-btn" data-model="lattego"><b>Con LatteGo (recipiente del latte)</b><small>EP2330, EP2331, EP2333, EP2334, EP2336, EP2339, EP3341, EP3343, EP3347, EP3349</small></button>
+    <button class="choice-btn" data-model="pannarello"><b>Con pannarello classico</b><small>EP3321, EP3323, EP3324, EP3326, EP3329</small></button>
+    <button class="choice-btn" data-model=""><b>Non lo so / mostra tutto</b><small>Vedrai tutte le istruzioni</small></button>
+  </div>
+  <label style="display:flex;gap:8px;align-items:center;font-size:15px"><input type="checkbox" id="tempIcon"> La mia macchina ha l'icona della temperatura (termometro) sul pannello</label>
+  <div style="text-align:right;margin-top:14px"><button class="btn primary" id="modalClose">Fatto</button></div>
+</div></div>
+
+<script>
+/* ---------- icone ---------- */
+const I = {
+  cup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V9Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>',
+  wrench:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14.7 6.3a4 4 0 0 0 5 5l-8.4 8.4a2.1 2.1 0 0 1-3-3l8.4-8.4a4 4 0 0 0-2-2Z"/><path d="M14.7 6.3 17 4l3 3-2.3 2.3"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>',
+  machine:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 7h14M9 11h6v3H9zM8 19h8"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4V8Z"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg>',
+  drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2.7s7 7.3 7 12.3a7 7 0 0 1-14 0c0-5 7-12.3 7-12.3Z"/></svg>',
+  milk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8 2h8v4l2 3v13H6V9l2-3V2Z"/><path d="M6 12h12"/></svg>',
+  bean:'<svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="12" rx="6" ry="9" transform="rotate(30 12 12)"/><path d="M9 5c4 4 2 10 6 14" stroke="#2c2c2e" stroke-width="1.6" fill="none"/></svg>',
+  qty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 13h12v2a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5v-2Z"/><path d="M11 3v7M8 6l3-3 3 3"/></svg>',
+  therm:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0Z"/></svg>',
+  power:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v8M6.4 6.4a8 8 0 1 0 11.2 0"/></svg>',
+  startstop:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6l8 6-8 6V6Z"/><rect x="14" y="7" width="7" height="10"/></svg>',
+  steam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3c-2 2 2 4 0 6M12 3c-2 2 2 4 0 6M16 3c-2 2 2 4 0 6M4 13h16l-2 7H6l-2-7Z"/></svg>',
+  ice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12l-2 18H8L6 3Z"/><rect x="9" y="8" width="3" height="3"/><rect x="12" y="12" width="3" height="3"/></svg>',
+  calc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/></svg>',
+  aqua:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 4l10 16M12 3s5 5 5 9"/><path d="M5 10s2-3 4-4"/></svg>',
+  tank:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h10v18H7z"/><path d="M7 14h10"/><path d="M4 4l16 16" /></svg>',
+  grounds:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 8h14l-2 12H7L5 8Z"/><path d="M9 4h6M9 12h1M13 14h1M10 16h1"/></svg>',
+};
+
+/* ---------- pannello di controllo ---------- */
+const KEYS = {
+  power:{label:'Acceso/spento',code:'B1',desc:'Accende e spegne la macchina. Molte impostazioni (stand-by, temperatura, durezza acqua, ripristino…) si fanno <b>a macchina spenta</b>.'},
+  espresso:{label:'Espresso',code:'B2',desc:'Icona bevanda Espresso. Toccala 2 volte per 2 tazze (spia 2x). Tenuta premuta 3 s a macchina spenta = ripristino impostazioni di fabbrica.'},
+  lungo:{label:'Espresso lungo',code:'B2',desc:'Icona bevanda Espresso lungo. Toccala 2 volte per 2 tazze.'},
+  caffe:{label:'Caffè',code:'B2',desc:'Icona bevanda Caffè. Tenuta premuta a macchina spenta = attiva/disattiva i segnali acustici.'},
+  freddo:{label:'Caffè freddo',code:'B2',desc:'Caffè freddo (solo alcuni modelli): erogalo su un bicchiere pieno per 2/3 di ghiaccio.',only:'some'},
+  cappuccino:{label:'Cappuccino',code:'B2',desc:'Cappuccino: eroga prima il latte, poi il caffè (con LatteGo).',only:'some'},
+  macchiato:{label:'Latte macchiato',code:'B2',desc:'Latte macchiato: eroga prima il latte, poi il caffè (con LatteGo).',only:'some'},
+  acqua:{label:'Acqua calda',code:'B2',desc:'Eroga acqua calda dall\'apposito beccuccio (A12). Rimuovi prima LatteGo o il pannarello.',only:'some'},
+  vapore:{label:'Vapore',code:'B2',desc:'Vapore per montare il latte con il pannarello classico (max 90 secondi).',only:'some'},
+  aroma:{label:'Aroma',code:'B3',desc:'Intensità dell\'aroma (3 livelli). Tenuta 3 s = <b>caffè pre-macinato</b> (si accende la spia del cucchiaino). A macchina spenta serve anche per impostare la durezza dell\'acqua e il tempo di stand-by.'},
+  qta:{label:'Quantità',code:'B4',desc:'Quantità di bevanda: basso, medio, alto. A macchina spenta, tenuta premuta = impostazione temperatura del caffè (modelli senza termometro).'},
+  latte:{label:'Latte',code:'B5',desc:'Quantità di latte (solo modelli specifici).',only:'some'},
+  temp:{label:'Temperatura',code:'B6',desc:'Temperatura del caffè (solo EP3300 con icona termometro): toccala più volte dopo aver scelto la bevanda.',only:'some'},
+  aqua:{label:'AquaClean',code:'B11',desc:'Icona del filtro AquaClean. Tenuta 3 s = attivazione di un nuovo filtro. Spia <b>blu</b> = filtro attivo, <b>arancione lampeggiante</b> = filtro da sostituire.'},
+  calc:{label:'Calc/Clean',code:'B10',desc:'Rimozione del calcare. Spia accesa = devi decalcificare. Tenuta 3 s = avvio decalcificazione. A macchina spenta = impostazione tempo di stand-by.'},
+  w_acqua:{label:'Serbatoio vuoto',code:'B7',desc:'Spia di avviso: serbatoio dell\'acqua vuoto o non inserito bene.'},
+  w_fondi:{label:'Svuota fondi',code:'B7',desc:'Spia di avviso: svuota il recipiente dei fondi di caffè (a macchina accesa!).'},
+  w_allarme:{label:'Allarme',code:'B7',desc:'Spia di allarme: fissa = vassoio/recipiente fondi/sportello non a posto; lampeggiante = problema col gruppo infusore.'},
+  startled:{label:'Spia di avvio',code:'B8',desc:'Spia di avvio: quando lampeggia la macchina aspetta che tu prema avvio/arresto.'},
+  start:{label:'Avvio/arresto',code:'B9',desc:'Avvia l\'erogazione o la conferma di un\'impostazione. Premuto durante l\'erogazione la interrompe.'},
+};
+const DRINKS=['espresso','lungo','caffe','freddo','cappuccino','macchiato','acqua','vapore'];
+
+function panelHTML(s={}){
+  const hl=new Set([...(s.tap||[]),...(s.hold||[])]);
+  const lit=new Set(s.lit||[]), bl=new Set(s.blink||[]);
+  const leds=s.leds||{};
+  const badge=id=> (s.hold||[]).includes(id)?`<span class="badge">${s.sec==='…'?'tieni premuto':'tieni '+(s.sec||3)+' s'}</span>`:((s.tap||[]).includes(id)&&s.tapLabel&&s.tapLabel[id]?`<span class="badge">${s.tapLabel[id]}</span>`:'');
+  const ledState=id=> bl.has(id)?'blink':(lit.has(id)?'on':'');
+  const key=(id,ico,extra='')=>`<button type="button" class="k ${hl.has(id)?'hl':''} ${extra}" data-k="${id}" aria-label="${KEYS[id].label}">${badge(id)}${ico}${extra.includes('round')?'':`<span>${KEYS[id].label}</span>`}${extra.includes('round')?'':`<span class="leds">${ledHTML(id,leds[id],ledState(id))}</span>`}</button>`;
+  const drinkIco={espresso:I.cup,lungo:I.cup,caffe:I.cup,freddo:I.ice,cappuccino:I.cup,macchiato:I.milk,acqua:I.drop,vapore:I.steam};
+  const vkey=(id,ico,n)=>{const st=leds[id]||[];return `<button type="button" class="k ${hl.has(id)?'hl':''}" data-k="${id}" aria-label="${KEYS[id].label}">${badge(id)}${ico}<span>${KEYS[id].label}</span><span class="leds">${Array.from({length:n},(_,i)=>`<i class="led ${st[i]||''}"></i>`).join('')}</span></button>`};
+  const wi=(id,ico,cls)=>`<div class="wi ${hl.has(id)?'hl':''}" data-k="${id}" style="cursor:pointer" title="${KEYS[id].label}">${ico}<i class="led ${cls||''} ${ledState(id)}"></i></div>`;
+  return `<div class="panel" role="group" aria-label="Pannello di controllo">
+    <div class="side">${key('power',I.power,'round')}</div>
+    <div style="display:grid;gap:8px">
+      <div class="mid">${DRINKS.map(d=>key(d,drinkIco[d])).join('')}</div>
+      <div class="choice">${vkey('aroma',I.bean,(leds.aroma||[]).length>3?4:4)}${vkey('qta',I.qty,3)}${vkey('latte',I.milk,3)}${vkey('temp',I.therm,3)}</div>
+      <div class="maint">${keyLed('aqua',I.aqua,hl,ledState('aqua'),s.aquaColor,badge)}${keyLed('calc',I.calc,hl,ledState('calc'),'',badge)}</div>
+    </div>
+    <div class="side">
+      <div class="warnicons">${wi('w_acqua',I.tank)}${wi('w_fondi',I.grounds)}${wi('w_allarme',I.alert,'red')}</div>
+      <div class="startled ${ledState('startled')}" data-k="startled" title="Spia di avvio"></div>
+      ${key('start',I.startstop,'round')}
+    </div>
+  </div>`;
+}
+function ledHTML(id,arr,state){ if(arr) return arr.map(c=>`<i class="led ${c}"></i>`).join(''); return `<i class="led ${state}"></i>`; }
+function keyLed(id,ico,hl,state,color,badge){return `<button type="button" class="k ${hl.has(id)?'hl':''}" data-k="${id}" aria-label="${KEYS[id].label}">${badge(id)}${ico}<span>${KEYS[id].label}</span><span class="leds"><i class="led ${color||''} ${state}"></i></span></button>`}
+
+function panelBlock(s,cap){
+  return `<div class="panelwrap"><p class="cap">${cap||'Pannello di controllo — i tasti da usare sono evidenziati in arancione. Tocca un tasto per sapere a cosa serve.'}</p>${panelHTML(s)}<div class="explain" data-explain></div></div>`;
+}
+document.addEventListener('click',e=>{
+  const k=e.target.closest('[data-k]'); if(!k) return;
+  const wrap=k.closest('.panelwrap'); if(!wrap) return;
+  const d=KEYS[k.dataset.k]; const ex=wrap.querySelector('[data-explain]');
+  if(ex) ex.innerHTML=`<b>${d.label}</b> <span class="tag">${d.code}</span>${d.only?' <span class="tag model">solo alcuni modelli</span>':''}<br>${d.desc}`;
+});
+
+/* ---------- parti della macchina (fig. A) ---------- */
+const PARTS={
+ A1:['Pannello di controllo','Tutti i tasti e le spie. Vedi la sezione "Pannello di controllo".',[23.5,4.6]],
+ A2:['Portatazza','Superficie superiore dove appoggiare le tazze.',[28.7,4.6]],
+ A3:['Scomparto caffè pre-macinato','Qui si mettono 3 cucchiaini (circa 8 g) di caffè macinato, o la pastiglia sgrassante. Controllalo ogni settimana: se si ostruisce, smuovi con il manico di un cucchiaio.',[36.9,4.6],'premacinato'],
+ A4:['Coperchio del contenitore caffè in grani','Non lavabile in lavastoviglie.',[44.2,4.6]],
+ A5:['Beccuccio del caffè regolabile','Fallo scorrere su/giù (85–145 mm) in base alla tazza. Se è sporco pulisci i fori con uno scovolino o un ago.',[19.6,29.5],'bevanda-grani'],
+ A6:['Manopola di selezione della macinatura','12 livelli: più basso = più fine e più forte. Ruotala solo mentre il macinacaffè è in funzione, un livello alla volta.',[62.2,27],'macinatura'],
+ A7:['Contenitore caffè in grani','Capacità 275 g.',[81,27]],
+ A8:['Gruppo infusore','Il cuore della macchina: sciacqualo ogni settimana, sgrassalo ogni mese, lubrificalo ogni 2 mesi. Non va in lavastoviglie.',[90.1,52.6],'rimuovi-gruppo'],
+ A9:['Sportello di manutenzione','Si apre dopo aver tolto il serbatoio dell\'acqua; dà accesso al gruppo infusore.',[94.5,55.3],'rimuovi-gruppo'],
+ A10:['Etichetta dati con numero del modello','All\'interno dello sportello di manutenzione: qui trovi il numero di modello (es. EP2336).',[90.1,58.1]],
+ A11:['Serbatoio dell\'acqua','1,8 litri, rimovibile. Sciacqualo ogni settimana. Non lavabile in lavastoviglie.',[46.1,76]],
+ A12:['Erogatore dell\'acqua calda','Da qui esce l\'acqua calda; qui si aggancia LatteGo.',[46.1,51.6],'acqua-calda'],
+ A13:['Contenitore fondi di caffè','Contiene circa 12 fondi. Svuotalo a macchina accesa, attendi 5 s prima di reinserirlo. Lavabile in lavastoviglie.',[34.5,54.5],'fondi'],
+ A14:['Pannello anteriore del recipiente fondi','NON lavabile in lavastoviglie.',[18.1,56.8]],
+ A15:['Coperchio vasca raccogligocce','Lavabile in lavastoviglie.',[18.1,62.3]],
+ A16:['Vasca raccogligocce (vassoio antigoccia)','Svuotala ogni giorno o quando compare l\'indicatore rosso. Lavabile in lavastoviglie.',[40.3,76],'vassoio'],
+ A17:['Indicatore "vassoio pieno"','Quando spunta attraverso il coperchio, svuota il vassoio.',[23.6,85.7],'vassoio'],
+ A18:['Filtro dell\'acqua AquaClean','Riduce il calcare. Va preparato e attivato; sostituiscilo ogni 3 mesi (o 95 litri). I filtri Brita non sono compatibili.',[72.6,85.7],'aquaclean-attiva'],
+ A19:['Pannarello classico','Solo modelli con pannarello: monta il latte con il vapore.',[81.3,85.7],'pannarello'],
+ A20:['LatteGo (recipiente del latte)','Solo modelli LatteGo. Capacità 250 ml. Lavabile in lavastoviglie.',[90.1,85.7],'lattego'],
+};
+
+/* ---------- guide ---------- */
+// step: {t: testo, f:[figure], p:{tap,hold,lit,blink,leds,sec}, timer: secondi, n: nota}
+const CATS={
+  bevande:{t:'Preparare le bevande',d:'Caffè, espresso, cappuccino, latte, acqua calda, caffè pre-macinato',i:I.cup},
+  impostazioni:{t:'Impostazioni e modalità',d:'Stand-by, temperatura, quantità, macinatura, durezza acqua, suoni',i:I.gear},
+  manutenzione:{t:'Pulizia e manutenzione',d:'Gruppo infusore, decalcificazione, AquaClean, LatteGo, pannarello',i:I.wrench},
+  problemi:{t:'Problemi e spie di avviso',d:'Una spia è accesa o qualcosa non funziona? Trova la soluzione',i:I.alert,href:'#/problemi'},
+  macchina:{t:'Conosci la macchina',d:'Parti della macchina, pannello di controllo, accessori, dati tecnici',i:I.machine,href:'#/macchina'},
+  calendario:{t:'Calendario manutenzione',d:'Cosa pulire e quando, con promemoria di cosa hai già fatto',i:I.cal,href:'#/calendario'},
+};
+const OFF={note:'Si fa a macchina <b>spenta</b>.'};
+const G=[
+/* ===== BEVANDE ===== */
+{id:'bevanda-grani',cat:'bevande',t:'Caffè con caffè in grani',d:'Espresso, espresso lungo, caffè — anche 2 tazze insieme',k:'espresso lungo caffè normale tazza grani due tazze 2x intensità aroma quantità',time:'2 min',
+ steps:[
+ {t:'Riempi il serbatoio dell\'acqua (A11) con acqua corrente e il contenitore (A7) con caffè in grani. Rimetti il coperchio (A4).'},
+ {t:'Premi il pulsante <b>acceso/spento</b>. La macchina si riscalda e fa un risciacquo automatico: le spie delle bevande si accendono e si spengono una alla volta.',p:{tap:['power']}},
+ {t:'Quando <b>tutte le spie delle bevande restano accese fisse</b>, la macchina è pronta.',p:{lit:DRINKS}},
+ {t:'Metti una tazza sotto il beccuccio e fallo scorrere su o giù in base all\'altezza della tazza.',f:[1],p:{lit:DRINKS}},
+ {t:'Tocca l\'icona della bevanda che vuoi (Espresso, Espresso lungo o Caffè).<ul><li>Per <b>2 tazze insieme</b> toccala due volte: si accende la spia 2x.</li></ul>',p:{tap:['espresso','lungo','caffe'],lit:DRINKS}},
+ {t:'Facoltativo: regola l\'<b>intensità dell\'aroma</b> (3 livelli, dal più leggero al più forte) e la <b>quantità</b> (basso, medio, alto).',f:[2,3],p:{tap:['aroma','qta'],leds:{aroma:['on','on','',''],qta:['on','on','']}}},
+ {t:'Premi <b>avvio/arresto</b>. Durante l\'erogazione la spia della bevanda lampeggia.<ul><li>Per fermare prima del tempo, premi di nuovo avvio/arresto.</li></ul>',p:{tap:['start'],blink:['espresso']}},
+ ]},
+{id:'lattego',cat:'bevande',model:'lattego',t:'Cappuccino e latte macchiato con LatteGo',d:'Bevande al latte con il recipiente LatteGo',k:'latte cappuccino macchiato lattego schiuma',time:'3 min',
+ steps:[
+ {t:'Assembla LatteGo: inserisci la parte superiore del recipiente sotto il gancio in cima alla struttura di supporto.',f:[4],n:'Recipiente e struttura devono essere puliti.'},
+ {t:'Premi la parte inferiore del recipiente finché senti un <b>clic</b>.',f:[5]},
+ {t:'Inclina leggermente LatteGo e posizionalo sotto il beccuccio dell\'acqua calda.',f:[6]},
+ {t:'Premilo finché non si blocca in posizione.',f:[7]},
+ {t:'Versa il latte fino al livello indicato sul recipiente per la bevanda che vuoi. Non superare il livello massimo.',f:[8],n:'Usa sempre latte di frigorifero per un risultato migliore. Se hai personalizzato la quantità di latte, potrebbe servirne più o meno del livello indicato.'},
+ {t:'Metti una tazza sul vassoio antigoccia.'},
+ {t:'Tocca l\'icona della bevanda al latte (Cappuccino o Latte macchiato). Se vuoi, regola aroma, quantità e quantità di latte.',p:{tap:['cappuccino','macchiato'],lit:DRINKS}},
+ {t:'Premi <b>avvio/arresto</b>. La macchina eroga prima il latte e poi il caffè.<ul><li>Premi avvio/arresto durante il latte per fermare solo il latte (poi parte il caffè).</li><li>Premi ancora per fermare tutta la bevanda.</li></ul>',p:{tap:['start'],blink:['cappuccino']}},
+ {t:'Dopo l\'uso pulisci LatteGo (vedi "Pulizia di LatteGo").',link:'pulizia-lattego'},
+ ]},
+{id:'pannarello',cat:'bevande',model:'pannarello',t:'Montare il latte con il pannarello',d:'Schiuma di latte o latte caldo con il vapore',k:'pannarello vapore schiuma latte caldo montare cappuccino',time:'2 min',
+ steps:[
+ {t:'Inclina verso sinistra il manico in silicone nero sulla macchina e infila il pannarello.',f:[9]},
+ {t:'Riempi una caraffa con circa <b>100 ml</b> di latte (cappuccino) o <b>150 ml</b> (latte macchiato).',n:'Usa sempre latte di frigorifero per la schiuma migliore.'},
+ {t:'Immergi il pannarello nel latte a circa 1 cm di profondità.'},
+ {t:'Tocca l\'icona del <b>vapore</b>. La sua spia si accende e la spia di avvio lampeggia.',f:[10],p:{tap:['vapore'],lit:['vapore'],blink:['startled']}},
+ {t:'Ruota la manopola del pannarello:<ul><li>sull\'icona <b>schiuma</b> per montare il latte;</li><li>sull\'icona <b>latte</b> per scaldarlo soltanto.</li></ul>Allinea l\'icona alla freccia nera.',f:[11,12]},
+ {t:'Premi <b>avvio/arresto</b>: il vapore entra nel latte.',f:[13],p:{tap:['start'],lit:['vapore']},timer:90,n:'Non montare mai il latte per più di 90 secondi (si ferma da solo). Non muovere la caraffa durante la schiuma.'},
+ {t:'Quando la schiuma ha il volume giusto, premi di nuovo <b>avvio/arresto</b>.',p:{tap:['start']}},
+ {t:'Pulisci subito il pannarello (vedi "Pulizia del pannarello dopo l\'uso").',link:'pannarello-dopo'},
+ ]},
+{id:'premacinato',cat:'bevande',t:'Caffè con caffè pre-macinato',d:'Per decaffeinato o un\'altra miscela in polvere',k:'macinato polvere decaffeinato deca pre-macinato cucchiaino',time:'2 min',
+ steps:[
+ {t:'Accendi la macchina e aspetta che sia pronta (spie bevande accese fisse).',p:{tap:['power'],lit:DRINKS}},
+ {t:'Apri il coperchio dello scomparto pre-macinato (A3), versa <b>3 cucchiaini</b> di caffè in polvere (circa 8 g) e richiudi.',f:[14]},
+ {t:'Metti una tazza sotto il beccuccio del caffè.'},
+ {t:'Seleziona una bevanda singola (es. Espresso o Caffè).',p:{tap:['espresso','caffe'],lit:DRINKS}},
+ {t:'Tieni premuta l\'icona dell\'<b>aroma per 3 secondi</b>: si accende la spia del caffè pre-macinato e la spia di avvio lampeggia.',f:[15],p:{hold:['aroma'],leds:{aroma:['','','','on']},blink:['startled']}},
+ {t:'Premi <b>avvio/arresto</b>. Premi di nuovo per fermare prima.',p:{tap:['start']}},
+ ],
+ notes:['Con il pre-macinato puoi fare <b>una sola tazza alla volta</b>.','L\'impostazione non viene memorizzata: ogni volta devi tenere premuta l\'icona aroma per 3 secondi.','Con il pre-macinato non puoi scegliere l\'intensità dell\'aroma.']},
+{id:'freddo',cat:'bevande',model:'some',t:'Caffè freddo',d:'Caffè su ghiaccio (solo alcuni modelli)',k:'freddo ghiaccio iced coffee estate',time:'2 min',
+ steps:[
+ {t:'Riempi un bicchiere per due terzi con cubetti di ghiaccio.'},
+ {t:'Metti il bicchiere sotto il beccuccio del caffè.'},
+ {t:'Tocca l\'icona del <b>caffè freddo</b>. Si accendono le spie di aroma e quantità.',f:[16],p:{tap:['freddo'],lit:DRINKS}},
+ {t:'Se vuoi regola la bevanda. Consigliato: <b>intensità aroma 3</b>.',p:{tap:['aroma'],leds:{aroma:['on','on','on','']}}},
+ {t:'Premi <b>avvio/arresto</b> (premi di nuovo per fermare prima). Per un tocco in più aggiungi latte freddo.',p:{tap:['start'],blink:['freddo']}},
+ ],notes:['Il caffè viene erogato caldo: per questo va versato sul ghiaccio.']},
+{id:'acqua-calda',cat:'bevande',t:'Acqua calda',d:'Per tè, tisane o per preriscaldare le tazze',k:'acqua calda tè tisana',time:'1 min',
+ steps:[
+ {t:'Se collegati, rimuovi LatteGo o il pannarello.'},
+ {t:'Tocca l\'icona dell\'<b>acqua calda</b>.',f:[17],p:{tap:['acqua'],lit:DRINKS}},
+ {t:'Regola la quantità con l\'icona della quantità.',f:[3],p:{tap:['qta']}},
+ {t:'Premi <b>avvio/arresto</b>: l\'acqua esce dall\'apposito beccuccio. Premi di nuovo per fermare prima.',f:[18],p:{tap:['start'],blink:['acqua']}},
+ ]},
+/* ===== IMPOSTAZIONI ===== */
+{id:'standby',cat:'impostazioni',t:'Tempo di stand-by (spegnimento automatico)',d:'15, 30, 60 o 180 minuti',k:'standby spegnimento automatico timer minuti risparmio',time:'1 min',
+ steps:[
+ {t:'Premi <b>acceso/spento</b> per spegnere la macchina.',p:{tap:['power']}},
+ {t:'A macchina spenta, tieni premuta l\'icona <b>Calc/Clean</b> finché si accendono la spia Calc/Clean e le spie dell\'aroma.',f:[19,20],p:{hold:['calc'],lit:['calc'],leds:{aroma:['on','on','on','on']},sec:'…'}},
+ {t:'Tocca l\'icona dell\'<b>aroma</b> per scegliere:<ul><li>1 spia = 15 min</li><li>2 spie = 30 min</li><li>3 spie = 60 min</li><li>4 spie = 180 min</li></ul>',p:{tap:['aroma'],lit:['calc'],leds:{aroma:['on','on','','']}}},
+ {t:'Premi <b>avvio/arresto</b> per confermare. La macchina si spegne.',p:{tap:['start']}},
+ {t:'Premi <b>acceso/spento</b> per riaccenderla.',p:{tap:['power']}},
+ ]},
+{id:'quantita',cat:'impostazioni',t:'Personalizzare la quantità di una bevanda',d:'Programma la tua quantità "alta" preferita',k:'quantità programmare tazza grande personalizzare memorizzare volume',time:'2 min',
+ steps:[
+ {t:'Per le bevande al latte: prima assembla LatteGo e versaci del latte.',n:'La macchina ha 3 quantità per bevanda (basso, medio, alto): puoi modificare solo la più <b>alta</b>.'},
+ {t:'Tieni premuta per <b>3 secondi</b> l\'icona della bevanda da regolare. Le spie superiori di quantità (e latte) e la spia di avvio lampeggiano: sei in modalità programmazione.',p:{hold:['caffe'],leds:{qta:['','','blink'],latte:['','','blink']},blink:['startled']}},
+ {t:'Premi <b>avvio/arresto</b>: la macchina inizia a erogare. La spia di avvio prima è fissa, poi lampeggia quando è pronta a memorizzare.',p:{tap:['start'],blink:['startled']}},
+ {t:'Quando nella tazza c\'è la quantità che vuoi, premi di nuovo <b>avvio/arresto</b>.<ul><li>Cappuccino / latte macchiato: premi quando c\'è abbastanza latte; la macchina passa al caffè; premi di nuovo quando c\'è abbastanza caffè.</li></ul>',p:{tap:['start']}},
+ ],notes:['Da ora, scegliendo la quantità alta di quella bevanda, otterrai la nuova quantità.','Per tornare alle quantità originali usa "Ripristino impostazioni di fabbrica".']},
+{id:'temperatura',cat:'impostazioni',model:'notemp',t:'Temperatura del caffè',d:'Normale, alta o massima (macchine senza icona termometro)',k:'temperatura caldo tiepido freddo più caldo',time:'1 min',
+ steps:[
+ {t:'Premi <b>acceso/spento</b> per spegnere la macchina.',p:{tap:['power']}},
+ {t:'A macchina spenta, tieni premuta l\'icona della <b>quantità</b> finché le sue spie si accendono.',f:[21],p:{hold:['qta'],leds:{qta:['on','on','on']},sec:'…'}},
+ {t:'Tocca l\'icona della quantità per scegliere:<ul><li>1 spia = normale</li><li>2 spie = alta</li><li>3 spie = massima</li></ul>',p:{tap:['qta'],leds:{qta:['on','on','on']}}},
+ {t:'Premi <b>avvio/arresto</b> per confermare.',p:{tap:['start']}},
+ {t:'Premi <b>acceso/spento</b> per riaccendere.',p:{tap:['power']}},
+ ],notes:['Se non la spegni tu, la macchina si spegne da sola dopo un po\'.','Caffè poco caldo? Imposta la massima e preriscalda la tazza con acqua calda.']},
+{id:'temperatura-ep3300',cat:'impostazioni',model:'temp',t:'Temperatura (modelli con icona termometro)',d:'Solo EP3300 con icona della temperatura',k:'temperatura termometro ep3300',time:'10 s',
+ steps:[
+ {t:'Seleziona la bevanda che vuoi.',p:{tap:['espresso','caffe'],lit:DRINKS}},
+ {t:'Tocca più volte l\'icona della <b>temperatura</b> per scegliere quella desiderata.',p:{tap:['temp'],leds:{temp:['on','on','']}}},
+ ]},
+{id:'ripristino',cat:'impostazioni',t:'Ripristino impostazioni di fabbrica',d:'Riporta le bevande alle impostazioni originali',k:'reset ripristino fabbrica originale default',time:'1 min',
+ steps:[
+ {t:'Premi <b>acceso/spento</b> per spegnere la macchina (si può fare solo a macchina spenta).',p:{tap:['power']}},
+ {t:'Tieni premuta l\'icona <b>Espresso</b> per 3 secondi. Si accendono le spie centrali e la spia di avvio lampeggia.',p:{hold:['espresso'],leds:{aroma:['','on','',''],qta:['','on',''],latte:['','on','']},blink:['startled']}},
+ {t:'Premi <b>avvio/arresto</b> per confermare il ripristino.',p:{tap:['start']}},
+ {t:'Premi <b>acceso/spento</b> per riaccendere.',p:{tap:['power']}},
+ ]},
+{id:'macinatura',cat:'impostazioni',t:'Regolare la macinatura',d:'Caffè più forte o più leggero (12 livelli)',k:'macinatura macinino grani forte leggero acquoso fine grossa manopola',time:'2 min',
+ steps:[
+ {t:'Metti una tazza sotto il beccuccio del caffè.',n:'Consiglio: non cambiare la macinatura prima di 100–150 tazze (circa 1 mese di utilizzo).'},
+ {t:'Apri il coperchio del contenitore del caffè in grani.'},
+ {t:'Tocca l\'icona <b>Espresso</b> e poi <b>avvio/arresto</b>.',p:{tap:['espresso','start'],lit:DRINKS}},
+ {t:'<b>Mentre il macinacaffè gira</b>, premi la manopola di macinatura e ruotala a sinistra o a destra di <b>un solo livello</b>.<ul><li>Più basso = più fine = caffè più forte.</li><li>Più alto = più grosso = caffè più leggero.</li></ul>',f:[22],n:'Mai più di un livello alla volta: rischi di danneggiare il macinacaffè.'},
+ {t:'Prepara 2–3 bevande per sentire davvero la differenza.'},
+ ]},
+{id:'suoni',cat:'impostazioni',t:'Disattivare i segnali acustici',d:'Silenzia i "bip" del pannello',k:'suoni bip beep acustici silenzioso muto',time:'1 min',
+ steps:[
+ {t:'Premi <b>acceso/spento</b> per spegnere la macchina.',p:{tap:['power']}},
+ {t:'A macchina spenta, tieni premuta l\'icona <b>Caffè</b> finché la spia di avvio inizia a lampeggiare.',p:{hold:['caffe'],lit:['caffe'],blink:['startled'],sec:'…'},n:'Il manuale qui è contraddittorio: dice "finché la spia non si spegne", ma nella nota dice che la spia si deve accendere. Il riferimento sicuro è la spia di avvio che lampeggia.'},
+ {t:'Tocca di nuovo l\'icona <b>Caffè</b>: la sua spia si spegne (suoni disattivati).',p:{tap:['caffe'],blink:['startled']}},
+ {t:'Premi <b>avvio/arresto</b> per confermare.',p:{tap:['start']}},
+ {t:'Premi <b>acceso/spento</b> per riaccendere. I suoni del pannello sono disattivati.',p:{tap:['power']}},
+ ],notes:['Se tenendo premuta l\'icona la sua spia non si accende, i suoni sono già disattivati: per riattivarli tocca di nuovo l\'icona e conferma con avvio/arresto.','I suoni dei pulsanti acceso/spento e avvio/arresto non si possono disattivare.']},
+{id:'durezza',cat:'impostazioni',t:'Impostare la durezza dell\'acqua',d:'Per meno calcare e decalcificazioni più rare',k:'durezza acqua calcare striscia test dh',time:'2 min',hard:true,
+ steps:[
+ {t:'Misura la durezza della tua acqua con la striscia test (o chiedi al tuo fornitore idrico) e scegli il livello qui sotto.',n:'Impostazione predefinita: <b>4 (acqua dura)</b>.'},
+ {t:'Premi <b>acceso/spento</b> per spegnere la macchina.',p:{tap:['power']}},
+ {t:'A macchina spenta, tieni premuta l\'icona dell\'<b>aroma</b> finché tutte le sue spie si spengono.',f:[2],p:{hold:['aroma'],leds:{aroma:['','','','']},sec:'…'}},
+ {t:'Tocca l\'icona dell\'aroma 1, 2, 3 o 4 volte: il numero di spie accese deve corrispondere al tuo livello.',p:{tap:['aroma'],leds:{aroma:['on','on','on','on']}},hardStep:true},
+ {t:'Premi <b>avvio/arresto</b> per confermare.',p:{tap:['start']}},
+ ],notes:['Usare l\'icona aroma per la durezza non cambia l\'intensità delle tue bevande.']},
+{id:'aquaclean-off',cat:'impostazioni',t:'Disattivare il promemoria AquaClean',d:'Se non vuoi più usare i filtri AquaClean',k:'aquaclean promemoria disattivare filtro arancione',time:'1 min',
+ steps:[
+ {t:'Premi <b>acceso/spento</b> per spegnere la macchina.',p:{tap:['power']}},
+ {t:'A macchina spenta, tieni premuta l\'icona <b>AquaClean</b> finché la spia di avvio lampeggia.',p:{hold:['aqua'],blink:['startled'],sec:'…'}},
+ {t:'Tocca di nuovo l\'icona AquaClean: la sua spia si spegne.',p:{tap:['aqua'],blink:['startled']}},
+ {t:'Premi <b>avvio/arresto</b> per confermare.',p:{tap:['start']}},
+ {t:'Premi <b>acceso/spento</b> per riaccendere. Promemoria disattivati.',p:{tap:['power']}},
+ ],notes:['Attivando un nuovo filtro AquaClean i promemoria si riattivano da soli.']},
+/* ===== MANUTENZIONE ===== */
+{id:'decalcificazione',cat:'manutenzione',t:'Rimozione del calcare (decalcificazione)',d:'Quando la spia Calc/Clean è accesa — circa 30 minuti',k:'calcare decalcificare decalcificazione calc clean anticalcare',time:'30 min',
+ pre:'1 flacone di soluzione anticalcare Philips e un recipiente grande da 1,5 litri.',
+ warn:'Non usare mai anticalcari a base di acido solforico, cloridrico, sulfamidico o acetico (aceto): danneggiano la macchina. Non decalcificare invalida la garanzia.',
+ steps:[
+ {t:'Controlla che la macchina sia <b>accesa</b>.',p:{lit:['calc']}},
+ {t:'Se collegati, rimuovi LatteGo o il pannarello.'},
+ {t:'Togli il vassoio antigoccia e il recipiente dei fondi, svuotali e rimettili.',f:[32]},
+ {t:'Togli il serbatoio dell\'acqua, svuotalo e <b>rimuovi il filtro AquaClean</b>.'},
+ {t:'Versa l\'intero flacone di anticalcare nel serbatoio, poi aggiungi acqua fino alla tacca <b>Calc/Clean</b>. Rimetti il serbatoio.',f:[46]},
+ {t:'Metti un recipiente grande (1,5 l) sotto il beccuccio del caffè e quello dell\'acqua.'},
+ {t:'Tieni premuta l\'icona <b>Calc/Clean per 3 secondi</b>, poi premi <b>avvio/arresto</b>.',f:[19],p:{hold:['calc'],tap:['start'],lit:['calc']}},
+ {t:'Parte la decalcificazione (la spia Calc/Clean lampeggia). Lascia che la macchina eroghi la soluzione finché segnala che il serbatoio è vuoto.',p:{blink:['calc'],lit:['w_acqua']}},
+ {t:'Svuota il serbatoio, sciacqualo e riempilo con acqua pulita fino alla tacca Calc/Clean.'},
+ {t:'Svuota il recipiente, rimettilo sotto i beccucci e premi di nuovo <b>avvio/arresto</b>.',p:{tap:['start']}},
+ {t:'Parte il risciacquo (circa 3 minuti): le spie del pannello si accendono e si spengono. Aspetta che la macchina smetta di erogare acqua.',timer:180},
+ {t:'La macchina si riscalda. Quando le spie delle bevande restano fisse è di nuovo pronta.',p:{lit:DRINKS}},
+ {t:'Installa e attiva un <b>nuovo filtro AquaClean</b> (la spia AquaClean lampeggia per ricordartelo).',link:'aquaclean-attiva',p:{blink:['aqua'],aquaColor:'orange'}},
+ ]},
+{id:'decalc-interrotta',cat:'manutenzione',t:'Decalcificazione interrotta: cosa fare',d:'Se la procedura si è fermata a metà',k:'decalcificazione interrotta fermata spenta',time:'10 min',
+ steps:[
+ {t:'Svuota il serbatoio dell\'acqua e lavalo bene.'},
+ {t:'Riempilo con acqua fresca fino alla tacca Calc/Clean e riaccendi la macchina. Farà un risciacquo automatico.',p:{tap:['power']}},
+ {t:'Prima di fare qualsiasi bevanda, fai un risciacquo manuale: eroga mezzo serbatoio di acqua calda toccando più volte l\'icona dell\'acqua calda…',p:{tap:['acqua','start']}},
+ {t:'…poi eroga 2 tazze di "caffè pre-macinato" <b>senza</b> mettere caffè (seleziona Caffè, tieni premuto aroma 3 s, avvio).',p:{tap:['caffe','start'],hold:['aroma']}},
+ ],notes:['Appena possibile dovrai ripetere una decalcificazione completa.','Puoi uscire volontariamente dalla decalcificazione premendo acceso/spento.']},
+{id:'aquaclean-attiva',cat:'manutenzione',t:'Attivare un nuovo filtro AquaClean',d:'Preparazione e attivazione del filtro — 5 minuti',k:'aquaclean filtro acqua attivare installare nuovo',time:'5 min',
+ warn:'La macchina deve essere priva di calcare. Se la spia arancione AquaClean è spenta, prima devi decalcificare.',
+ steps:[
+ {t:'Controlla che la macchina sia accesa.',p:{lit:DRINKS}},
+ {t:'Scuoti il filtro per circa <b>5 secondi</b>.',f:[42],timer:5},
+ {t:'Immergi il filtro capovolto in una caraffa di acqua fredda e scuotilo o premilo (circa 30 secondi).',f:[43],timer:30,n:'Se salti questo passaggio entra aria nella macchina: molto rumore e niente caffè.'},
+ {t:'Inserisci il filtro in verticale sul punto di aggancio nel serbatoio e spingilo il più in basso possibile.',f:[44]},
+ {t:'Riempi il serbatoio con acqua del rubinetto e rimettilo nella macchina.'},
+ {t:'Se collegato, rimuovi LatteGo. Metti un recipiente sotto l\'erogatore dell\'acqua calda / pannarello.'},
+ {t:'Tieni premuta l\'icona <b>AquaClean per 3 secondi</b>: la spia di avvio lampeggia.',f:[45],p:{hold:['aqua'],blink:['startled']}},
+ {t:'Premi <b>avvio/arresto</b>: esce acqua calda per circa 3 minuti.',p:{tap:['start']},timer:180},
+ {t:'Fatto! La spia AquaClean diventa <b>blu</b>: il filtro è attivo.',p:{lit:['aqua'],aquaColor:'blue'}},
+ ]},
+{id:'aquaclean-cambio',cat:'manutenzione',t:'Sostituire il filtro AquaClean',d:'Ogni 3 mesi o quando la spia arancione lampeggia',k:'aquaclean sostituire cambiare filtro 3 mesi arancione',time:'5 min',
+ steps:[
+ {t:'Quando la spia AquaClean <b>lampeggia arancione</b> (dopo 95 litri), puoi cambiare il filtro senza decalcificare.',p:{blink:['aqua'],aquaColor:'orange'}},
+ {t:'Estrai il vecchio filtro dal serbatoio.'},
+ {t:'Installa e attiva il nuovo filtro seguendo la guida "Attivare un nuovo filtro AquaClean".',link:'aquaclean-attiva'},
+ ],notes:['Sostituiscilo almeno ogni 3 mesi anche senza avviso: un filtro vecchio può ostruirsi.','Se la luce arancione si è già spenta, prima dovrai decalcificare.','I filtri Brita non sono compatibili.']},
+{id:'rimuovi-gruppo',cat:'manutenzione',t:'Rimuovere il gruppo infusore',d:'Per pulirlo o se è bloccato',k:'gruppo infusore togliere estrarre rimuovere',time:'1 min',
+ steps:[
+ {t:'Spegni la macchina.',p:{tap:['power']}},
+ {t:'Togli il serbatoio dell\'acqua e apri lo sportello di manutenzione.',f:[23]},
+ {t:'Premi la leva <b>PUSH</b>…',f:[24]},
+ {t:'…e tira l\'impugnatura per estrarre il gruppo infusore.',f:[25]},
+ ]},
+{id:'inserisci-gruppo',cat:'manutenzione',t:'Reinserire il gruppo infusore',d:'Rimetterlo nella posizione giusta',k:'gruppo infusore rimettere inserire posizione freccia',time:'1 min',
+ steps:[
+ {t:'Controlla la posizione: la freccia sul cilindro giallo deve essere allineata alla freccia nera e alla <b>N</b>.',f:[26]},
+ {t:'Se non è allineata, spingi la leva in basso finché tocca la base del gruppo infusore.',f:[27]},
+ {t:'Fai scorrere il gruppo nella macchina lungo le guide laterali…',f:[28]},
+ {t:'…finché si blocca con un <b>clic</b>. <b>Non</b> premere il pulsante PUSH.',f:[29]},
+ {t:'Chiudi lo sportello di manutenzione e rimetti il serbatoio dell\'acqua.'},
+ ]},
+{id:'gruppo-acqua',cat:'manutenzione',t:'Sciacquare il gruppo infusore',d:'Ogni settimana, sotto l\'acqua corrente',k:'gruppo infusore lavare sciacquare settimanale pulire',time:'5 min + asciugatura',
+ steps:[
+ {t:'Rimuovi il gruppo infusore.',link:'rimuovi-gruppo',f:[25]},
+ {t:'Sciacqualo bene con acqua e pulisci con cura il filtro superiore.',f:[33]},
+ {t:'Lascialo <b>asciugare all\'aria</b> prima di reinserirlo.',n:'Non asciugarlo con un panno: lascerebbe fibre all\'interno. Non va in lavastoviglie.'},
+ {t:'Reinserisci il gruppo infusore.',link:'inserisci-gruppo',f:[29]},
+ ]},
+{id:'gruppo-pastiglia',cat:'manutenzione',t:'Sgrassare il gruppo infusore (pastiglia)',d:'Ogni mese, con la pastiglia sgrassante Philips',k:'pastiglia sgrassante grasso residui mensile gruppo infusore',time:'25 min',
+ steps:[
+ {t:'Metti una tazza sotto l\'erogatore del caffè e riempi il serbatoio con acqua potabile.'},
+ {t:'Metti una pastiglia sgrassante nello scomparto del caffè pre-macinato.',f:[14]},
+ {t:'Tocca l\'icona <b>Caffè</b> e tieni premuta l\'icona <b>aroma per 3 s</b> (funzione pre-macinato).',f:[15],p:{tap:['caffe'],hold:['aroma'],leds:{aroma:['','','','on']},lit:['caffe']}},
+ {t:'Non aggiungere caffè. Premi <b>avvio/arresto</b>. Quando è uscita <b>mezza tazza</b> d\'acqua, <b>stacca la spina</b>.',p:{tap:['start']}},
+ {t:'Lascia agire la soluzione per almeno <b>15 minuti</b>.',timer:15*60},
+ {t:'Ricollega la spina e accendi: la macchina completa il ciclo. Svuota la tazza.',p:{tap:['power']}},
+ {t:'Togli il serbatoio, apri lo sportello, rimuovi il gruppo infusore e sciacqualo bene sotto l\'acqua.',f:[25,33]},
+ {t:'Reinserisci il gruppo infusore e il serbatoio. Metti una tazza sotto l\'erogatore.',f:[29]},
+ {t:'Ripeti <b>due volte</b>: Caffè → aroma 3 s → avvio/arresto, senza caffè. Svuota la tazza.',p:{tap:['caffe','start'],hold:['aroma']}},
+ ],notes:['Usa solo pastiglie sgrassanti Philips.']},
+{id:'lubrificazione',cat:'manutenzione',t:'Lubrificare il gruppo infusore',d:'Ogni 2 mesi, con il lubrificante Philips',k:'lubrificare grasso lubrificante gruppo infusore 2 mesi rumore',time:'5 min',
+ steps:[
+ {t:'Rimuovi il gruppo infusore.',link:'rimuovi-gruppo',f:[25]},
+ {t:'Applica uno strato sottile di lubrificante sul pistone (parte grigia).',f:[34]},
+ {t:'Applica uno strato sottile intorno al perno (in giallo) nella parte inferiore.',f:[35]},
+ {t:'Applica uno strato sottile sulle guide, su entrambi i lati.',f:[36]},
+ {t:'Reinserisci il gruppo infusore.',link:'inserisci-gruppo',f:[29]},
+ ]},
+{id:'pulizia-lattego',cat:'manutenzione',model:'lattego',t:'Pulizia di LatteGo',d:'Dopo ogni utilizzo',k:'lattego pulire lavare latte lavastoviglie',time:'2 min',
+ steps:[
+ {t:'Rimuovi LatteGo dalla macchina.',f:[37]},
+ {t:'Versa via il latte rimasto.'},
+ {t:'Premi il pulsante di sgancio e separa il recipiente dalla struttura.',f:[38]},
+ {t:'Lava tutte le parti in lavastoviglie o sotto acqua tiepida con un po\' di detersivo.'},
+ ]},
+{id:'pannarello-dopo',cat:'manutenzione',model:'pannarello',t:'Pulizia del pannarello dopo l\'uso',d:'Ogni volta che lo usi',k:'pannarello pulire vapore dopo uso',time:'1 min',
+ steps:[
+ {t:'Metti una tazza sotto il pannarello.'},
+ {t:'Tocca l\'icona del <b>vapore</b> e premi <b>avvio/arresto</b> per eliminare i residui di latte.',p:{tap:['vapore','start']}},
+ {t:'Dopo qualche secondo premi di nuovo <b>avvio/arresto</b>.',p:{tap:['start']}},
+ {t:'Pulisci il pannarello con un panno umido.'},
+ ]},
+{id:'pannarello-giorno',cat:'manutenzione',model:'pannarello',t:'Pulizia quotidiana del pannarello',d:'Smontaggio e lavaggio completo',k:'pannarello smontare lavare quotidiana',time:'5 min',
+ steps:[
+ {t:'Lascia raffreddare completamente il pannarello.'},
+ {t:'Inclinalo a sinistra e rimuovi la parte in metallo e quella in silicone.',f:[39]},
+ {t:'Smonta le tre parti e sciacquale sotto l\'acqua o lavale in lavastoviglie.',f:[40]},
+ {t:'Lasciale asciugare all\'aria, rimontale e ricollega il pannarello.'},
+ ]},
+{id:'premacinato',cat:'manutenzione',alias:true},
+{id:'scomparto',cat:'manutenzione',t:'Sbloccare lo scomparto pre-macinato',d:'Controllo settimanale o se è ostruito',k:'scomparto ostruito bloccato intasato pre-macinato cucchiaio',time:'3 min',
+ steps:[
+ {t:'Spegni la macchina, stacca la spina e rimuovi il gruppo infusore.',link:'rimuovi-gruppo',p:{tap:['power']}},
+ {t:'Apri il coperchio dello scomparto pre-macinato e inserisci il manico di un cucchiaio.',f:[30]},
+ {t:'Muovi il manico su e giù finché il caffè che ostruisce cade giù.',f:[30]},
+ {t:'Elimina il caffè caduto e reinserisci il gruppo infusore pulito.',link:'inserisci-gruppo'},
+ ]},
+{id:'fondi',cat:'manutenzione',t:'Svuotare il recipiente dei fondi',d:'Quando la macchina lo chiede; lavarlo ogni settimana',k:'fondi svuotare recipiente cassetto spia',time:'1 min',
+ steps:[
+ {t:'Con la macchina <b>accesa</b>, estrai il recipiente dei fondi di caffè.',p:{lit:['w_fondi']},n:'Se lo svuoti a macchina spenta il contatore non si azzera e la spia resta accesa.'},
+ {t:'Svuotalo. Una volta a settimana lavalo con acqua e detersivo o in lavastoviglie (il pannello frontale A14 no).'},
+ {t:'Attendi almeno <b>5 secondi</b> e reinseriscilo: il contatore si azzera.',timer:5},
+ ]},
+{id:'vassoio',cat:'manutenzione',t:'Svuotare il vassoio antigoccia',d:'Ogni giorno o quando spunta l\'indicatore',k:'vassoio antigoccia raccogligocce acqua pieno svuotare',time:'1 min',
+ steps:[
+ {t:'Svuota il vassoio ogni giorno o quando l\'indicatore "vassoio pieno" spunta dal coperchio.',f:[31]},
+ {t:'Estrai il vassoio, svuotalo e sciacqualo (una volta a settimana con detersivo o in lavastoviglie).',f:[32]},
+ {t:'Quando togli il vassoio, svuota anche il recipiente dei fondi, così il contatore resta corretto.'},
+ ],notes:['È normale che si riempia in fretta: la macchina usa acqua per sciacquare il circuito interno. Metti una tazza sotto il beccuccio all\'accensione per raccogliere l\'acqua di risciacquo.']},
+];
+const GUIDES=G.filter(g=>!g.alias);
+const byId=Object.fromEntries(GUIDES.map(g=>[g.id,g]));
+
+/* ---------- problemi ---------- */
+const ALERTS=[
+ {id:'acqua',t:'Spia "serbatoio vuoto" accesa',p:{lit:['w_acqua']},sol:['Il serbatoio è quasi vuoto: riempilo con acqua fresca fino al livello massimo.','Il serbatoio non è inserito bene: rimettilo spingendolo fino in fondo.']},
+ {id:'fondi',t:'Spia "svuota fondi" accesa',p:{lit:['w_fondi']},sol:['Il recipiente dei fondi è pieno: svuotalo <b>a macchina accesa</b> e aspetta almeno 5 secondi prima di reinserirlo.'],link:'fondi'},
+ {id:'allarme',t:'Spia di allarme (triangolo) accesa fissa',p:{lit:['w_allarme']},sol:['Recipiente dei fondi e/o vassoio antigoccia mancanti o messi male: rimettili correttamente.','Lo sportello di manutenzione è aperto: togli il serbatoio e chiudi lo sportello.']},
+ {id:'allarme-lamp',t:'Spia di allarme lampeggiante',p:{blink:['w_allarme']},sol:['Gruppo infusore assente o inserito male: toglilo e reinseriscilo finché fa clic.','Gruppo infusore bloccato: toglilo, sciacqualo, lubrificalo e rimettilo.'],link:'inserisci-gruppo',links:['rimuovi-gruppo','gruppo-acqua','lubrificazione']},
+ {id:'aria',t:'Allarme acceso + spia di avvio lampeggiante',p:{lit:['w_allarme'],blink:['startled']},sol:['C\'è aria nel circuito. Riempi il serbatoio, metti una tazza sotto il pannarello / erogatore acqua calda e premi avvio/arresto.','Attenzione: usciranno piccoli getti di acqua calda.']},
+ {id:'aqua',t:'Spia AquaClean lampeggiante',p:{blink:['aqua'],aquaColor:'orange'},sol:['Inserisci (o sostituisci) il filtro AquaClean e attivalo.'],link:'aquaclean-attiva',links:['aquaclean-off']},
+ {id:'calc',t:'Spia Calc/Clean accesa',p:{lit:['calc']},sol:['Devi eseguire la rimozione del calcare.'],link:'decalcificazione'},
+ {id:'giro',t:'Le spie delle bevande si accendono una alla volta',p:{blink:['espresso','caffe','cappuccino','acqua']},sol:['La macchina si sta riscaldando o sta eliminando aria. Aspetta che tutte le spie delle bevande restino fisse.']},
+ {id:'tutte',t:'Tutte le spie di avviso lampeggiano',p:{blink:['w_acqua','w_fondi','w_allarme']},sol:['Stacca e riattacca la spina. Prima di riaccendere:','• togli il filtro AquaClean dal serbatoio;','• rimetti il serbatoio spingendolo fino in fondo;','• controlla lo scomparto pre-macinato: se è ostruito sbloccalo con il manico di un cucchiaio, togli il gruppo infusore e il caffè caduto, rimetti il gruppo pulito;','• riaccendi.','Se così si risolve, il filtro AquaClean non era preparato bene: preparalo di nuovo (passi 1–2 dell\'attivazione).','Se lampeggiano ancora, la macchina potrebbe essere surriscaldata: spegnila, attendi 30 minuti e riaccendi. Se persiste, contatta l\'assistenza Philips.'],links:['scomparto','aquaclean-attiva'],timer:1800},
+];
+const PROBLEMS=[
+ {t:'Il vassoio antigoccia si riempie velocemente',c:[['È normale: la macchina usa acqua per sciacquare il circuito interno e il gruppo infusore.','Svuotalo ogni giorno o quando spunta l\'indicatore. Consiglio: metti una tazza sotto il beccuccio per raccogliere l\'acqua di risciacquo.','vassoio']]},
+ {t:'La spia "svuota fondi" resta accesa',c:[['Hai svuotato il recipiente a macchina spenta.','Svuotalo sempre a macchina accesa: estrailo, aspetta almeno 5 secondi e reinseriscilo.','fondi']]},
+ {t:'Chiede di svuotare i fondi anche se il recipiente non è pieno',c:[['Il contatore non si è azzerato all\'ultimo svuotamento.','Aspetta sempre circa 5 secondi prima di reinserire il recipiente, e svuotalo a macchina accesa.','fondi']]},
+ {t:'Recipiente fondi troppo pieno ma la spia non si è accesa',c:[['Hai tolto il vassoio senza svuotare i fondi.','Quando togli il vassoio, svuota sempre anche il recipiente dei fondi, anche se quasi vuoto.','vassoio']]},
+ {t:'Non riesco a togliere il gruppo infusore',c:[['Il gruppo non è nella posizione corretta.','Chiudi lo sportello, rimetti il serbatoio, spegni e riaccendi la macchina. Poi riprova.','rimuovi-gruppo']]},
+ {t:'Non riesco a inserire il gruppo infusore',c:[['Il gruppo non è nella posizione corretta.','Chiudi lo sportello e rimetti il serbatoio senza il gruppo. Spegni, stacca la spina, aspetta 30 s, ricollega e accendi. Poi metti il gruppo in posizione corretta (frecce allineate su N) e inseriscilo.','inserisci-gruppo']]},
+ {t:'Il caffè è acquoso',c:[['Gruppo infusore sporco o da lubrificare.','Sciacqualo, lascialo asciugare e lubrifica le parti mobili.','gruppo-acqua'],['La macchina è in autoregolazione (primo uso, nuovo tipo di chicchi, lungo inutilizzo).','Prepara 5 tazze per completare l\'autoregolazione.'],['Macinatura troppo grossa.','Imposta una macinatura più fine (livello più basso) e prepara 2–3 bevande.','macinatura']]},
+ {t:'Il caffè non è abbastanza caldo',c:[['Temperatura impostata troppo bassa.','Imposta la temperatura al massimo.','temperatura'],['Tazza fredda.','Preriscalda la tazza con acqua calda.','acqua-calda'],['L\'aggiunta di latte abbassa la temperatura.','È normale: preriscalda le tazze.']]},
+ {t:'Il caffè non esce o esce lentamente',c:[['Filtro AquaClean non preparato bene.','Togli il filtro e prova a fare un caffè. Se funziona, prepara di nuovo il filtro e rimettilo. Dopo lunghi periodi di inattività va preparato di nuovo.','aquaclean-attiva'],['Filtro AquaClean ostruito (più vecchio di 3 mesi).','Sostituiscilo.','aquaclean-cambio'],['Macinatura troppo fine.','Imposta una macinatura più grossa (livello più alto).','macinatura'],['Gruppo infusore sporco.','Sciacqualo sotto l\'acqua corrente.','gruppo-acqua'],['Beccuccio del caffè sporco.','Pulisci il beccuccio e i fori con uno scovolino o un ago.'],['Scomparto pre-macinato ostruito.','Sbloccalo con il manico di un cucchiaio.','scomparto'],['Circuito bloccato dal calcare.','Esegui la decalcificazione.','decalcificazione']]},
+ {t:'Macina i grani ma il caffè non esce',c:[['Scomparto pre-macinato ostruito.','Spegni, togli il gruppo infusore e sblocca lo scomparto con il manico di un cucchiaio.','scomparto']]},
+ {t:'Il latte non fa schiuma',c:[['(LatteGo) Non è montato correttamente.','Assicurati che il recipiente sia agganciato alla struttura (clic).','lattego'],['(LatteGo) Recipiente o struttura sporchi.','Smonta e lava le due parti.','pulizia-lattego'],['(Pannarello) Pannarello sporco.','Puliscilo accuratamente.','pannarello-giorno'],['Tipo di latte non adatto.','Risultati buoni con latte vaccino intero o parzialmente scremato e latte senza lattosio. Usalo freddo di frigorifero.']]},
+ {t:'Esce latte dal fondo di LatteGo',c:[['Struttura e recipiente non assemblati bene.','Inserisci prima la parte superiore sotto il gancio, poi premi la parte inferiore fino al clic.','lattego']]},
+ {t:'La macchina sembra perdere acqua',c:[['Acqua di risciacquo nel vassoio: normale.','Svuota il vassoio ogni giorno; metti una tazza sotto il beccuccio all\'accensione.','vassoio'],['Il vassoio è troppo pieno ed è traboccato.','Svuotalo più spesso.','vassoio'],['Serbatoio non inserito fino in fondo (entra aria).','Toglilo e reinseriscilo spingendo bene.'],['Gruppo infusore sporco/ostruito.','Sciacqualo.','gruppo-acqua'],['La macchina non è in piano.','Mettila su una superficie orizzontale.']]},
+ {t:'Non riesco ad attivare AquaClean e chiede di decalcificare',c:[['Il filtro non è stato installato/sostituito in tempo: la macchina non è priva di calcare.','Prima decalcifica, poi installa il filtro.','decalcificazione']]},
+ {t:'Il nuovo filtro non entra',c:[['Non è un filtro AquaClean.','Solo il filtro AquaClean è compatibile (Brita no).'],['L\'anello in gomma del filtro è fuori posto.','Rimetti a posto l\'anello di gomma.']]},
+ {t:'La macchina fa un forte rumore',c:[['Un po\' di rumore durante l\'uso è normale.','Se il rumore cambia, pulisci e lubrifica il gruppo infusore.','lubrificazione'],['Filtro AquaClean non preparato: entra aria.','Togli il filtro e preparalo correttamente.','aquaclean-attiva'],['Serbatoio non inserito fino in fondo.','Toglilo e reinseriscilo spingendo bene.']]},
+];
+
+/* ---------- calendario ---------- */
+const SCHED=[
+ {id:'vassoio',t:'Svuotare il vassoio antigoccia',every:1,g:'vassoio'},
+ {id:'vassoio-lava',t:'Lavare vassoio antigoccia',every:7,g:'vassoio'},
+ {id:'fondi',t:'Lavare il recipiente dei fondi',every:7,g:'fondi'},
+ {id:'gruppo',t:'Sciacquare il gruppo infusore',every:7,g:'gruppo-acqua'},
+ {id:'serbatoio',t:'Sciacquare il serbatoio dell\'acqua',every:7},
+ {id:'scomparto',t:'Controllare lo scomparto pre-macinato',every:7,g:'scomparto'},
+ {id:'pastiglia',t:'Sgrassare il gruppo infusore (pastiglia)',every:30,g:'gruppo-pastiglia'},
+ {id:'lubrifica',t:'Lubrificare il gruppo infusore',every:60,g:'lubrificazione'},
+ {id:'aquaclean',t:'Sostituire il filtro AquaClean',every:90,g:'aquaclean-cambio'},
+ {id:'lattego',t:'Lavare LatteGo',every:1,g:'pulizia-lattego',model:'lattego',note:'dopo ogni uso'},
+ {id:'pannarello',t:'Pulire il pannarello',every:1,g:'pannarello-giorno',model:'pannarello',note:'dopo ogni uso + ogni giorno'},
+ {id:'calc',t:'Decalcificazione',every:0,g:'decalcificazione',note:'quando la spia Calc/Clean si accende'},
+];
+
+/* ---------- stato ---------- */
+const store={get(k,d){try{const v=localStorage.getItem('caffe:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('caffe:'+k,JSON.stringify(v))}catch(e){}}};
+let model=store.get('model',''), hasTemp=store.get('temp',false);
+function modelOk(g){
+  if(!g.model||g.model==='some') return true;
+  if(g.model==='temp') return hasTemp||!model;
+  if(g.model==='notemp') return !hasTemp;
+  return !model||g.model===model;
+}
+function modelTag(g){
+  const m={lattego:'Solo LatteGo',pannarello:'Solo pannarello',some:'Solo alcuni modelli',temp:'Solo con icona temperatura',notemp:'Senza icona temperatura'}[g.model];
+  return m?`<span class="tag model">${m}</span>`:'';
+}
+function updModelBtn(){
+  document.getElementById('modelBtn').innerHTML=`${I.machine.replace('<svg','<svg width="16" height="16"')} ${model==='lattego'?'Modello: LatteGo':model==='pannarello'?'Modello: pannarello':'Scegli il tuo modello'}`;
+}
+
+/* ---------- viste ---------- */
+const app=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const strip=s=>s.replace(/<[^>]+>/g,'');
+function card(g){
+  return `<a class="card ${modelOk(g)?'':'dim'}" href="#/guida/${g.id}"><h3>${g.t}</h3><p>${g.d}</p><div class="tags">${g.time?`<span class="tag time">⏱ ${g.time}</span>`:''}<span class="tag">${g.steps.length} passi</span>${modelTag(g)}</div></a>`;
+}
+function home(){
+  const quick=['decalcificazione','aquaclean-attiva','gruppo-acqua','premacinato','standby','durezza'];
+  app.innerHTML=`<h1>Cosa ti serve oggi?</h1>
+  <p class="lead">Scegli un argomento oppure cerca in alto. Ogni guida è passo-passo, con le immagini del manuale e il pannello della macchina che ti mostra quali tasti premere.</p>
+  <div class="quick">${quick.map(id=>`<a class="pill" href="#/guida/${id}">${byId[id].t}</a>`).join('')}<a class="pill" href="#/problemi" style="border-color:var(--warn);color:var(--warn)">${I.alert.replace('<svg','<svg width="16" height="16"')} C'è una spia accesa</a></div>
+  <div class="cats">${Object.entries(CATS).map(([k,c])=>`<a class="card cat" href="${c.href||'#/cat/'+k}"><span class="ico">${c.i.replace('<svg','<svg width="26" height="26"')}</span><h3>${c.t}</h3><p>${c.d}</p></a>`).join('')}</div>
+  <h2>Primo utilizzo</h2>
+  <div class="grid">
+   <a class="card" href="#/guida/aquaclean-attiva"><h3>1. Attiva il filtro AquaClean</h3><p>5 minuti. All'accensione può uscire un po' d'acqua: è normale.</p></a>
+   <a class="card" href="#/guida/durezza"><h3>2. Imposta la durezza dell'acqua</h3><p>Predefinita: 4 (acqua dura).</p></a>
+   <a class="card" href="#/guida/${model==='pannarello'?'pannarello':'lattego'}"><h3>3. Monta LatteGo o il pannarello</h3><p>Sciacqualo prima del primo uso.</p></a>
+   <a class="card" href="#/guida/bevanda-grani"><h3>4. Prepara 5 caffè</h3><p>La macchina si autoregola nelle prime 5 tazze.</p></a>
+  </div>
+  <div class="notice info"><b>Prima volta?</b><span>Sciacqua con acqua calda tutte le parti rimovibili che toccano acqua o latte. La macchina è stata testata con caffè: eventuali residui sono normali.</span></div>`;
+}
+function catView(k){
+  const c=CATS[k]; if(!c) return home();
+  const list=GUIDES.filter(g=>g.cat===k).sort((a,b)=>modelOk(b)-modelOk(a));
+  app.innerHTML=`<div class="crumbs"><a href="#/">Home</a> › ${c.t}</div><h1>${c.t}</h1><p class="lead">${c.d}</p>
+  ${list.some(g=>!modelOk(g))?`<div class="notice info"><span>Le guide in grigio non riguardano il modello che hai scelto.</span></div>`:''}
+  <div class="grid">${list.map(card).join('')}</div>`;
+}
+let cur={g:null,i:0}, timerInt=null;
+function guideView(id,step){
+  const g=byId[id]; if(!g) return home();
+  const done=store.get('done:'+id,[]);
+  cur={g,i:Math.max(0,Math.min(g.steps.length-1,step||0))};
+  const c=CATS[g.cat];
+  app.innerHTML=`<div class="crumbs"><a href="#/">Home</a> › <a href="#/cat/${g.cat}">${c.t}</a> › ${g.t}</div>
+  <h1>${g.t}</h1><p class="lead">${g.d}</p>
+  <div class="tags" style="margin:-10px 0 14px">${g.time?`<span class="tag time">⏱ ${g.time}</span>`:''}<span class="tag">${g.steps.length} passi</span>${modelTag(g)}</div>
+  ${!modelOk(g)?`<div class="notice warn"><b>Attenzione</b><span>Questa guida non riguarda il modello che hai selezionato.</span></div>`:''}
+  ${g.pre?`<div class="notice info"><b>Ti serve</b><span>${g.pre}</span></div>`:''}
+  ${g.warn?`<div class="notice warn"><b>Importante</b><span>${g.warn}</span></div>`:''}
+  ${g.hard?hardPicker():''}
+  <div class="guide"><div class="stepbox" id="stepbox"></div><div class="visual" id="visual"></div></div>
+  ${g.notes?`<h2>Da sapere</h2>${g.notes.map(n=>`<div class="notice tip"><span>${n}</span></div>`).join('')}`:''}
+  <details class="acc allsteps"><summary>Vedi tutti i passi in un elenco</summary><div class="body"><ol>${g.steps.map(s=>`<li>${s.t}</li>`).join('')}</ol></div></details>`;
+  renderStep();
+}
+function hardPicker(){
+  const h=store.get('hard',4);
+  const lv=[[1,'Acqua molto dolce','< 6 °dH'],[2,'Acqua dolce','> 7 °dH'],[3,'Acqua dura','> 14 °dH'],[4,'Acqua molto dura (predefinita)','> 21 °dH']];
+  return `<h2>La tua acqua</h2><p class="lead" style="margin-bottom:8px">Striscia test: conta i punti rossi (1 punto rosso o 4 verdi = livello 1).</p>
+  <div class="choices" id="hard">${lv.map(([n,t,d])=>`<button class="choice-btn ${n==h?'on':''}" data-h="${n}"><b>Livello ${n} — ${n} ${n>1?'spie':'spia'}</b><small>${t} · ${d}</small></button>`).join('')}</div>`;
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-h]');if(!b)return;store.set('hard',+b.dataset.h);document.querySelectorAll('[data-h]').forEach(x=>x.classList.toggle('on',x===b));renderStep();});
+function renderStep(){
+  const {g,i}=cur, s=g.steps[i], n=g.steps.length;
+  clearInterval(timerInt);
+  let p=s.p;
+  if(s.hardStep){const h=store.get('hard',4);p={...p,leds:{aroma:[0,1,2,3].map(x=>x<h?'on':'')}};}
+  document.getElementById('stepbox').innerHTML=`
+   <div class="stepnum">Passo ${i+1} di ${n}</div>
+   <div class="progress"><i style="width:${(i+1)/n*100}%"></i></div>
+   <div class="steptext">${s.t}${s.hardStep?`<ul><li>Per te: tocca <b>${store.get('hard',4)} ${store.get('hard',4)>1?'volte':'volta'}</b>.</li></ul>`:''}</div>
+   ${s.n?`<div class="notice tip"><span>${s.n}</span></div>`:''}
+   ${s.link?`<p><a href="#/guida/${s.link}">→ Apri la guida "${byId[s.link].t}"</a></p>`:''}
+   ${s.timer?timerHTML(s.timer):''}
+   <div class="nav"><button class="btn" id="prev" ${i==0?'disabled':''}>← Indietro</button>
+   ${i<n-1?`<button class="btn primary" id="next">Avanti →</button>`:`<button class="btn primary" id="fin">✓ Finito</button>`}</div>
+   <div class="dots">${g.steps.map((_,k)=>`<button class="${k==i?'on':k<i?'done':''}" data-step="${k}" aria-label="Passo ${k+1}">${k+1}</button>`).join('')}</div>`;
+  const figs=(s.f||[]).map(f=>`<div class="fig" data-fig="${f}"><img src="img/fig${f}.png" alt="Figura ${f}" loading="lazy"><span>Fig. ${f}</span></div>`).join('');
+  document.getElementById('visual').innerHTML=`${figs?`<div class="figs">${figs}</div>`:''}${p?panelBlock(p):''}${!figs&&!p?`<div class="panelwrap" style="color:var(--muted)">Nessuna immagine per questo passo.</div>`:''}`;
+  const pv=document.getElementById('prev'),nx=document.getElementById('next'),fn=document.getElementById('fin');
+  pv&&(pv.onclick=()=>go(i-1)); nx&&(nx.onclick=()=>go(i+1));
+  fn&&(fn.onclick=()=>{markDone(g.id);document.getElementById('stepbox').insertAdjacentHTML('beforeend',`<div class="notice tip" style="margin-top:14px"><b>Fatto!</b><span>Ho segnato "${g.t}" come eseguito oggi nel <a href="#/calendario">calendario</a>.</span></div>`);fn.disabled=true;});
+  document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>go(+b.dataset.step));
+  const tb=document.getElementById('tstart'); if(tb) tb.onclick=()=>startTimer(s.timer);
+}
+function go(k){cur.i=Math.max(0,Math.min(cur.g.steps.length-1,k));history.replaceState(null,'',`#/guida/${cur.g.id}/${cur.i+1}`);renderStep();window.scrollTo({top:Math.min(window.scrollY,document.getElementById('stepbox').offsetTop-90),behavior:'smooth'});}
+function fmt(t){const m=Math.floor(t/60),s=t%60;return `${m}:${String(s).padStart(2,'0')}`}
+function timerHTML(t){return `<div class="timer"><span>⏱</span><span class="t" id="tval">${fmt(t)}</span><button class="btn" id="tstart">Avvia timer</button></div>`}
+// iPhone: l'audio va "sbloccato" durante un tocco, e lo schermo tenuto acceso mentre il timer gira
+let audioCtx=null, wakeLock=null;
+function unlockAudio(){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();g.gain.value=0;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.01);}catch(e){}}
+async function keepAwake(on){try{if(on&&'wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');}else if(!on&&wakeLock){await wakeLock.release();wakeLock=null;}}catch(e){}}
+function stopTimer(){clearInterval(timerInt);keepAwake(false);}
+function startTimer(t){
+  stopTimer(); unlockAudio(); keepAwake(true);
+  let left=t; const el=document.getElementById('tval'); const b=document.getElementById('tstart');
+  const end=Date.now()+t*1000;
+  b.textContent='Ricomincia';
+  timerInt=setInterval(()=>{left=Math.round((end-Date.now())/1000); if(!document.getElementById('tval')) return stopTimer(); el.textContent=fmt(Math.max(0,left));
+    if(left<=0){stopTimer();el.textContent='Tempo!';beep();}},1000);
+}
+function beep(){try{const a=audioCtx||new (window.AudioContext||window.webkitAudioContext)();[0,.3,.6].forEach(d=>{const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start(a.currentTime+d);o.stop(a.currentTime+d+.18);});}catch(e){}if(navigator.vibrate)navigator.vibrate([200,100,200]);}
+document.addEventListener('keydown',e=>{if(!cur.g||!location.hash.startsWith('#/guida')||e.target.tagName==='INPUT')return;if(e.key==='ArrowRight')go(cur.i+1);if(e.key==='ArrowLeft')go(cur.i-1);});
+function markDone(gid){const map={'vassoio':['vassoio'],'fondi':['fondi'],'gruppo-acqua':['gruppo'],'scomparto':['scomparto'],'gruppo-pastiglia':['pastiglia'],'lubrificazione':['lubrifica'],'aquaclean-attiva':['aquaclean'],'aquaclean-cambio':['aquaclean'],'pulizia-lattego':['lattego'],'pannarello-giorno':['pannarello'],'pannarello-dopo':['pannarello'],'decalcificazione':['calc']};
+  (map[gid]||[]).forEach(id=>setDone(id));}
+function setDone(id){const d=store.get('sched',{});d[id]=new Date().toISOString().slice(0,10);store.set('sched',d);}
+
+function problemsView(){
+  app.innerHTML=`<div class="crumbs"><a href="#/">Home</a> › Problemi</div><h1>Problemi e spie di avviso</h1>
+  <p class="lead">Prima scegli cosa vedi sul pannello. Più sotto trovi l'elenco dei problemi più comuni.</p>
+  <h2>Che spia vedi?</h2>
+  <div class="choices" id="alerts">${ALERTS.map(a=>`<button class="choice-btn" data-a="${a.id}"><b>${a.t}</b></button>`).join('')}</div>
+  <div id="alertOut" style="margin-top:14px"></div>
+  <h2>Altri problemi</h2>
+  <input id="pq" type="search" placeholder="Filtra i problemi… (es. acquoso, rumore, schiuma)" style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit">
+  <div id="plist">${PROBLEMS.map((p,i)=>`<details class="acc" data-p="${esc(strip(p.t+' '+p.c.flat().join(' ')).toLowerCase())}"><summary>${p.t}</summary><div class="body">${p.c.map(([c,s,l])=>`<div class="cause"><div class="c">Causa: ${c}</div><div class="s">${s}</div>${l?`<a href="#/guida/${l}">→ ${byId[l].t}</a>`:''}</div>`).join('')}</div></details>`).join('')}</div>
+  <div class="notice info" style="margin-top:20px"><span>Se il problema persiste, contatta il Centro Assistenza Clienti Philips del tuo paese (video e FAQ su www.home.id/support).</span></div>`;
+  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('[data-a]').forEach(x=>x.classList.toggle('on',x===b));
+    const a=ALERTS.find(x=>x.id===b.dataset.a);
+    const links=[a.link,...(a.links||[])].filter(Boolean);
+    document.getElementById('alertOut').innerHTML=`<div class="guide"><div class="stepbox"><h3>${a.t}</h3><div class="steptext" style="font-size:17px">${a.sol.map(x=>`<p style="margin:6px 0">${x}</p>`).join('')}</div>${a.timer?timerHTML(a.timer):''}${links.map(l=>`<p style="margin:6px 0"><a href="#/guida/${l}">→ ${byId[l].t}</a></p>`).join('')}</div><div class="visual">${panelBlock(a.p,'Così appare il pannello in questa situazione:')}</div></div>`;
+    const tb=document.getElementById('tstart'); if(tb) tb.onclick=()=>startTimer(a.timer);
+    document.getElementById('alertOut').scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+  document.getElementById('pq').oninput=e=>{const q=e.target.value.toLowerCase().trim();document.querySelectorAll('#plist .acc').forEach(d=>{d.style.display=!q||d.dataset.p.includes(q)?'':'none'; if(q&&d.dataset.p.includes(q)) d.open=true;});};
+}
+function machineView(){
+  app.innerHTML=`<div class="crumbs"><a href="#/">Home</a> › La macchina</div><h1>Conosci la macchina</h1>
+  <p class="lead">Tocca un cerchio sul disegno o un nome nell'elenco per sapere a cosa serve quella parte.</p>
+  <div class="map" id="map"><img src="img/figA.png" alt="Panoramica della macchina (Fig. A)">${Object.entries(PARTS).map(([k,v])=>`<button class="hs" data-part="${k}" style="left:${v[2][0]}%;top:${v[2][1]}%" aria-label="${k} ${esc(v[0])}"></button>`).join('')}</div>
+  <div class="partinfo" id="partinfo"><span style="color:var(--muted)">Seleziona una parte…</span></div>
+  <div class="parts">${Object.entries(PARTS).map(([k,v])=>`<button data-part="${k}"><b>${k}</b>${v[0]}</button>`).join('')}</div>
+  <h2>Pannello di controllo</h2>
+  ${panelBlock({lit:DRINKS},'Tocca un tasto per sapere a cosa serve. Alcuni tasti esistono solo su certi modelli.')}
+  <details class="acc"><summary>Mostra la figura originale del pannello (Fig. B)</summary><div class="body"><div class="fig" data-fig="B" style="max-width:none"><img src="img/figB.png" alt="Fig. B"></div></div></details>
+  <h2>Cosa va in lavastoviglie</h2>
+  <div class="fig" data-fig="D" style="max-width:none;cursor:zoom-in"><img src="img/figD.png" alt="Fig. D lavastoviglie"></div>
+  <div class="grid" style="margin-top:12px">
+   <div class="card"><h3 style="color:var(--ok)">✓ Sì, lavastoviglie</h3><p>A17 indicatore + A16 vassoio antigoccia, A15 coperchio vassoio, A13 recipiente fondi, A20 LatteGo, A19 pannarello</p></div>
+   <div class="card"><h3 style="color:var(--warn)">✗ No, solo a mano</h3><p>A14 pannello frontale fondi, gruppo infusore, A4 coperchio grani, A11 serbatoio dell'acqua</p></div>
+  </div>
+  <h2>Modelli e accessori</h2>
+  <div class="fig" data-fig="C" style="max-width:520px"><img src="img/figC.png" alt="Fig. C modelli"></div>
+  <h2>Dati tecnici</h2>
+  <div class="tablewrap"><table><tbody>
+   <tr><th>Dimensioni (L×A×P)</th><td>247 × 366 × 434 mm</td></tr>
+   <tr><th>Peso</th><td>7,5 – 8 kg</td></tr>
+   <tr><th>Cavo di alimentazione</th><td>800 – 1200 mm</td></tr>
+   <tr><th>Serbatoio acqua</th><td>1,8 litri, rimovibile</td></tr>
+   <tr><th>Contenitore caffè in grani</th><td>275 g</td></tr>
+   <tr><th>Recipiente fondi</th><td>12 fondi</td></tr>
+   <tr><th>LatteGo</th><td>250 ml</td></tr>
+   <tr><th>Altezza beccuccio</th><td>85 – 145 mm</td></tr>
+   <tr><th>Tensione / potenza</th><td>Vedi etichetta dati dentro lo sportello (A10)</td></tr>
+  </tbody></table></div>
+  <div class="notice info"><b>Ricambi</b><span>Anticalcare, filtri AquaClean, pastiglie sgrassanti e lubrificante: rivenditori, centri assistenza o online su home-appliances.philips/parts-accessories (inserisci il numero di modello).</span></div>`;
+  const show=k=>{const v=PARTS[k];document.querySelectorAll('[data-part]').forEach(b=>b.classList.toggle('on',b.dataset.part===k));
+    document.getElementById('partinfo').innerHTML=`<h3><span class="tag">${k}</span> ${v[0]}</h3><p style="margin:4px 0 0">${v[1]}</p>${v[3]?`<p style="margin:6px 0 0"><a href="#/guida/${v[3]}">→ ${byId[v[3]].t}</a></p>`:''}`;};
+  document.querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>{show(b.dataset.part); if(!b.classList.contains('hs')) document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'});});
+}
+function calView(){
+  const d=store.get('sched',{}); const today=new Date(new Date().toISOString().slice(0,10));
+  const items=SCHED.filter(s=>!s.model||!model||s.model===model);
+  app.innerHTML=`<div class="crumbs"><a href="#/">Home</a> › Calendario</div><h1>Calendario manutenzione</h1>
+  <p class="lead">Segna quando fai una pulizia: ti dico cosa è in scadenza. I dati restano salvati solo in questo browser.</p>
+  <div class="sched">${items.map(s=>{
+    const last=d[s.id]; let st='never',txt='Mai segnato';
+    if(last){const days=Math.round((today-new Date(last))/864e5); if(s.every){const left=s.every-days; st=left<=0?'due':'ok'; txt=left<=0?`Da fare (ultima volta ${days===0?'oggi':days+' gg fa'})`:`OK — prossima tra ${left} ${left==1?'giorno':'giorni'}`;} else {st='ok';txt=`Ultima volta: ${new Date(last).toLocaleDateString('it-IT')}`;}}
+    return `<div class="sitem"><b>${s.t}</b><small style="color:var(--muted)">${s.every?`Ogni ${s.every==1?'giorno':s.every==7?'settimana':s.every==30?'mese':s.every==60?'2 mesi':'3 mesi'}`:''}${s.note?(s.every?' · ':'')+s.note:''}</small><span class="st ${st}">${txt}</span><div class="row"><button class="btn primary" data-done="${s.id}">Fatto oggi</button>${s.g?`<a class="btn" style="text-decoration:none" href="#/guida/${s.g}">Guida</a>`:''}</div></div>`;}).join('')}</div>`;
+  document.querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>{setDone(b.dataset.done);calView();});
+}
+
+/* ---------- ricerca ---------- */
+const q=document.getElementById('q'), res=document.getElementById('results');
+const IDX=[...GUIDES.map(g=>({h:'#/guida/'+g.id,t:g.t,s:CATS[g.cat].t,x:(g.t+' '+g.d+' '+(g.k||'')+' '+g.steps.map(s=>strip(s.t)).join(' ')).toLowerCase()})),
+  ...PROBLEMS.map(p=>({h:'#/problemi',t:p.t,s:'Problemi',x:(p.t+' '+p.c.flat().join(' ')).toLowerCase()})),
+  ...ALERTS.map(a=>({h:'#/problemi',t:a.t,s:'Spie di avviso',x:(a.t+' spia luce '+a.sol.join(' ')).toLowerCase()})),
+  ...Object.entries(PARTS).map(([k,v])=>({h:'#/macchina',t:`${k} · ${v[0]}`,s:'Parti della macchina',x:(k+' '+v[0]+' '+v[1]).toLowerCase()}))];
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'');
+let sel=-1;
+q.oninput=()=>{
+  const words=norm(q.value.toLowerCase()).split(/\s+/).filter(w=>w.length>1);
+  if(!words.length){res.style.display='none';return;}
+  const r=IDX.map(it=>{const x=norm(it.x),t=norm(it.t.toLowerCase());let sc=0;for(const w of words){if(t.includes(w))sc+=3;else if(x.includes(w))sc+=1;else if(w.length>4&&x.includes(w.slice(0,-2)))sc+=.5;else return null}return {...it,sc}}).filter(Boolean).sort((a,b)=>b.sc-a.sc).slice(0,8);
+  sel=-1;
+  res.innerHTML=r.length?r.map(it=>`<a href="${it.h}">${esc(it.t)}<small>${it.s}</small></a>`).join(''):`<a href="#/problemi">Nessun risultato — prova "Problemi e spie"<small>oppure usa parole diverse</small></a>`;
+  res.style.display='block';
+};
+q.onkeydown=e=>{const a=[...res.querySelectorAll('a')];if(!a.length)return;
+  if(e.key==='ArrowDown'){sel=Math.min(a.length-1,sel+1);e.preventDefault()}else if(e.key==='ArrowUp'){sel=Math.max(0,sel-1);e.preventDefault()}else if(e.key==='Enter'){location.hash=(a[sel<0?0:sel]).getAttribute('href');closeRes();return}else if(e.key==='Escape'){closeRes();return}
+  a.forEach((x,i)=>x.classList.toggle('sel',i===sel));};
+function closeRes(){res.style.display='none';q.value='';q.blur();}
+res.addEventListener('click',()=>setTimeout(closeRes,0));
+document.addEventListener('click',e=>{if(!e.target.closest('.search'))res.style.display='none'});
+
+/* ---------- lightbox, tema, modello ---------- */
+const lb=document.getElementById('lb');
+document.addEventListener('click',e=>{const f=e.target.closest('[data-fig]');if(f){lb.querySelector('img').src=f.querySelector('img').src;lb.classList.add('on');}});
+lb.onclick=()=>lb.classList.remove('on');
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){lb.classList.remove('on');document.getElementById('modal').classList.remove('on')}});
+const themeBtn=document.getElementById('themeBtn');
+let theme=store.get('theme',''); if(theme) document.documentElement.dataset.theme=theme;
+themeBtn.onclick=()=>{const dark=theme?theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;theme=dark?'light':'dark';document.documentElement.dataset.theme=theme;store.set('theme',theme);};
+const modal=document.getElementById('modal');
+document.getElementById('modelBtn').onclick=()=>{document.getElementById('tempIcon').checked=hasTemp;modal.querySelectorAll('[data-model]').forEach(b=>b.classList.toggle('on',b.dataset.model===model));modal.classList.add('on')};
+modal.querySelectorAll('[data-model]').forEach(b=>b.onclick=()=>{model=b.dataset.model;store.set('model',model);modal.querySelectorAll('[data-model]').forEach(x=>x.classList.toggle('on',x===b));});
+document.getElementById('modalClose').onclick=()=>{hasTemp=document.getElementById('tempIcon').checked;store.set('temp',hasTemp);modal.classList.remove('on');updModelBtn();route();};
+modal.onclick=e=>{if(e.target===modal)document.getElementById('modalClose').click()};
+
+/* ---------- router ---------- */
+function route(){
+  const h=location.hash.replace(/^#\/?/,'').split('/');
+  stopTimer(); cur={g:null,i:0};
+  if(h[0]==='guida') guideView(h[1],(parseInt(h[2])||1)-1);
+  else if(h[0]==='cat') catView(h[1]);
+  else if(h[0]==='problemi') problemsView();
+  else if(h[0]==='macchina') machineView();
+  else if(h[0]==='calendario') calView();
+  else home();
+  if(!(h[0]==='guida'&&h[2])) window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);
+updModelBtn(); route();
+
+/* ---------- app installabile: funziona offline (solo da https o localhost) ---------- */
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
